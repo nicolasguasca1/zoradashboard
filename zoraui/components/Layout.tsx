@@ -64,6 +64,7 @@ interface LayoutProps {
 /**
  * Component
  */
+
 const Layout = ({ children, customMeta }: LayoutProps): JSX.Element => {
   const { account, deactivate } = useEthers();
   const { notifications } = useNotifications();
