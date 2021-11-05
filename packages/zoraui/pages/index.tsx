@@ -1,130 +1,125 @@
-import {useState, useEffect} from 'react'
-import { GetStaticProps, GetStaticPaths, GetServerSideProps } from 'next'
-import type { NextPage } from 'next'
-import styles from '../styles/Home.module.css'
-import { createClient } from 'urql'
+import { useState, useEffect } from "react";
+import { GetStaticProps, GetStaticPaths, GetServerSideProps } from "next";
+import type { NextPage } from "next";
+import { createClient } from "urql";
+import { ethers } from "ethers";
+import axios from "axios";
+import Web3Modal from "web3modal";
+import { nftaddress, nftmarketaddress } from "../config";
 
-const APIURL = 'https://api.studio.thegraph.com/query/13261/zoradashboard/0.1'
+import NFT from "../../hardhat/artifacts/contracts/NFT.sol/NFT.json";
+import NFTMarket from "../../hardhat/artifacts/contracts/NFTMarket.sol/NFTMarket.json";
 
-const tokensQuery = `
-  query {
-    tokens(
-      orderDirection: asc
-      orderBy: createdAtTimestamp
-      first: 50
-    ) {
-      id
-      tokenID
-      contentURI
-      metadataURI
-    }
-  }
-
-`
-
-const client = createClient({
-  url: APIURL
-})
-
+export type item = {
+  tokenId: { toString: () => any };
+  price: { toString: () => any };
+  seller: any;
+  owner: any;
+};
 
 const Home: NextPage = (props) => {
-  console.log('props:', props)
+  const [nfts, setNfts]: any[] = useState([]);
+  const [loadingState, setLoadingState] = useState("not-loaded");
+
+  useEffect(() => {
+    loadNFTs();
+  }, []);
+
+  async function loadNFTs() {
+    const provider = new ethers.providers.JsonRpcProvider();
+    const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider);
+    const marketContract = new ethers.Contract(
+      nftmarketaddress,
+      NFTMarket.abi,
+      provider
+    );
+    const data = await marketContract.fetchMarketItems();
+
+    const items: unknown[] = await Promise.all(
+      data.map(async (i: item) => {
+        const tokenUri = await tokenContract.tokenURI(i.tokenId);
+        const meta = await axios.get(tokenUri);
+        let price = ethers.utils.formatUnits(i.price.toString(), "ether");
+        let item = {
+          price,
+          tokenId: Number(i.tokenId),
+          seller: i.seller,
+          owner: i.owner,
+          image: meta.data.image,
+          name: meta.data.name,
+          description: meta.data.description
+        };
+        return item;
+      })
+    );
+    setNfts(items);
+    setLoadingState("loaded");
+  }
+
+  async function buyNft(nft: item) {
+    const web3Modal = new Web3Modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(
+      nftmarketaddress,
+      NFTMarket.abi,
+      signer
+    );
+
+    const price = ethers.utils.parseUnits(nft.price.toString(), "ether");
+
+    const transaction = await contract.createMarketSale(
+      nftaddress,
+      nft.tokenId,
+      {
+        value: price
+      }
+    );
+    await transaction.wait();
+    loadNFTs();
+  }
+
+  if (loadingState === "loaded" && !nfts.length)
+    return <h1 className="px-20 py-10 text-3xl">No items in marketplace</h1>;
+
   return (
-    <div className="grid grid-cols-4 gap-4 px-10 py-10">
-      <div>Random NFT Dashboard</div>
-    {
-      props.tokens.map(token => {
-        return (
-          <div key={token.contentURI} className="shadow-lg bf-transparent rounded-2xl overflow-hidden">
-            <div 
-              className="w-100% h-100%"
-              >
-                {
-                  token.type === 'image' && (
-                  <div style={{height: '320px', overflow: 'hidden'}}>
-                    <img style={{ minHeight: '320px' }} src={token.contentURI} />
-                    </div>
-                  )
-                }
-                {
-                  token.type === 'video' && (
-                  <div className="relative">
-                    <div style={{width: '288px', height: '320px', boxSizing: 'border-box'}}/>
-                    <div style={{position: 'absolute', top: 0, left: 0, bottom: 0, right:0 }}>
-                      <video height="auto" controls
-                      style={{position: 'absolute', width: '100%', height: '100%', display: 'block', objectFit: 'cover'}}>
-                        <source src={token.contentURI} />
-                      </video>
-                    </div>
-                  </div>
-                  )
-                } 
-                {
-                  token.type === 'audio' && (
-                    <audio controls>
-                      <source src={token.contentURI} type="audio/ogg" />
-                      <source src={token.contentURI} type="audio/mpeg" />
-                    Your browser does not support the audio element.  
-                    </audio>
-                  )
-                } 
-                <div className="px-2 pt-2 pb-10">
-                  <h3
-                  style={{ height: 100}}
-                  className="text-2xl p-4 pt-6 font-semibold">{token.meta.name}</h3>
+    <div className="flex justify-center">
+      <div className="px-4" style={{ maxWidth: "1600px" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
+          {nfts.map((nft: any, i: any) => (
+            <div key={i} className="border shadow rounded-xl overflow-hidden">
+              <img src={nft.image} />
+              <div className="p-4">
+                <p
+                  style={{ height: "64px" }}
+                  className="text-2xl fron-semibold"
+                >
+                  {nft.name}
+                </p>
+                <div style={{ height: "70px", overflow: "hidden" }}>
+                  <p className="text-gray-400">{nft.description}</p>
                 </div>
               </div>
-              <div className="bg-black p-10">
-                <p className="text-white">
-                  Price
+              <div className="p-4 bg-black">
+                <p className="text-2xl mb-4 font-bold text-white">
+                  {nft.price} Matic
                 </p>
+                <button
+                  type="button"
+                  className="w-full bg-pink-500 text-white font-bold py-2 px-12 rounded"
+                  onClick={() => buyNft(nft)}
+                >
+                  Buy{" "}
+                </button>
               </div>
             </div>
-          )
-      })
-    }
+          ))}
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
-
-async function fetchData() {
-  let data = await client
-    .query(tokensQuery)
-    .toPromise();
-  
-  let tokenData = await Promise.all(data.data.tokens.map(async token => {
-    console.log('token:', token);
-  let meta;
-    try {
-      const metaData = await fetch(token.metadataURI)
-      let response = await metaData.json()
-      meta = response
-    } catch (err) {
-    }
-    console.log('meta:', meta);
-    if (!meta) return
-    if (meta.mimeType == 'video/mp4') {
-      token.type = 'video'
-    }
-    else if (meta.mimeType == 'audio/wav') {
-      token.type = 'audio'
-    }
-    else {
-      token.type = 'image'
-    }
-    token.meta = meta
-    return token
-  }))
-  return tokenData
-}
-
-export async function getServerSideProps() {
-  const data = await fetchData()
-  return {
-    props: {
-      tokens: data
-    }
-  }
-}
+export default Home;

@@ -8,11 +8,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "axios": "^0.24.0",
+    "ethers": "^5.5.1",
     "graphql": "^16.0.1",
     "next": "11.0.1",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "urql": "^2.0.5"
+    "urql": "^2.0.5",
+    "web3modal": "^1.9.4"
   },
   "devDependencies": {
     "@types/node": "16.11.6",

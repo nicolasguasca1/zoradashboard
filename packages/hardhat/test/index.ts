@@ -1,12 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-type item = {
-  tokenId: { toString: () => any };
-  price: { toString: () => any };
-  seller: any;
-  owner: any;
-};
+import { item } from "../../zoraui/pages/index";
 
 describe("NFTMarket", function () {
   it("Should create and execute market sales", async function () {
