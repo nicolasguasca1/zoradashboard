@@ -1,6 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
+type item = {
+  tokenId: { toString: () => any };
+  price: { toString: () => any };
+  seller: any;
+  owner: any;
+};
+
 describe("NFTMarket", function () {
   it("Should create and execute market sales", async function () {
     const Market = await ethers.getContractFactory("NFTMarket");
@@ -38,7 +45,21 @@ describe("NFTMarket", function () {
       .connect(buyerAddress)
       .createMarketSale(nftContractAddress, 1, { value: auctionPrice });
 
-    const items = await market.fetchMarketItems();
+    let items = await market.fetchMarketItems();
+
+    items = await Promise.all(
+      items.map(async (i: item) => {
+        const tokenUri = await nft.tokenURI(i.tokenId);
+        let item = {
+          price: i.price.toString(),
+          tokenId: i.tokenId.toString(),
+          seller: i.seller,
+          owner: i.owner,
+          tokenUri
+        };
+        return item;
+      })
+    );
     console.log("items: ", items);
   });
 });
