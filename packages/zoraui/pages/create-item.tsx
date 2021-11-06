@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { create as ipfsHttpClient, urlSource } from "ipfs-http-client";
 import type { NextPage } from "next";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
@@ -91,7 +92,6 @@ const CreateItem: () => void = () => {
 
   return (
     <div className="flex justify-center">
-      holii
       <div className="w-1/2 flex flex-col pb-12">
         <input
           placeholder="Asset Name"
@@ -114,20 +114,22 @@ const CreateItem: () => void = () => {
             updateFormInput({ ...formInput, price: e.target.value })
           }
         />
-        <input
-          type="file"
-          name="Asset"
-          className="my-4"
-          onChange={() => createSale}
-        />
+        <input type="file" name="Asset" className="my-4" onChange={onChange} />
+        {fileUrl && (
+          <Image
+            alt="Image to be uploaded ad NFT file"
+            className="rounded mt-4"
+            width="350"
+            src={fileUrl as any}
+          />
+        )}
         <button
-          onClick={() => createSale}
+          onClick={createItem}
           className="font-bold mt-4 bg-purple-500 text-white rounded p-4 shadow-lg"
         >
           Create Digital Asset
         </button>
       </div>
-      ;
     </div>
   );
 };
