@@ -34,7 +34,7 @@ const CreateItem: () => void = () => {
   });
   const router = useRouter();
 
-  async function onChange(e: { target: { files: any[] } }) {
+  async function onChange(e: any): Promise<void> {
     const file = e.target.files[0];
     try {
       const added = await client.add(file, {

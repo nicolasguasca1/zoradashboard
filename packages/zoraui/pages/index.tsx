@@ -108,7 +108,7 @@ const Home: NextPage = (props) => {
                 </p>
                 <button
                   type="button"
-                  className="w-full bg-pink-500 text-white font-bold py-2 px-12 rounded"
+                  className="w-full bg-purple-500 text-white font-bold py-2 px-12 rounded"
                   onClick={() => buyNft(nft)}
                 >
                   Buy{" "}
