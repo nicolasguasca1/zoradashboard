@@ -7,13 +7,13 @@ import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import { item } from "./index";
 
-const client = ipfsHttpClient({
-  host: "ipfs.infura.io/api/v0",
-  port: 5001,
-  protocol: "https"
-});
+// const client = ipfsHttpClient({
+//   host: "ipfs.infura.io",
+//   port: 5001,
+//   protocol: "https"
+// });
 
-// const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
+const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
 
 import { nftaddress, nftmarketaddress } from "../config";
 
@@ -48,6 +48,7 @@ const CreateItem: () => void = () => {
       alert("Please fill in all fields");
       return;
     }
+    console.log(name, description, price, fileUrl);
     const data = JSON.stringify({ name, description, image: fileUrl });
 
     try {
@@ -66,10 +67,7 @@ const CreateItem: () => void = () => {
     const signer = provider.getSigner();
 
     let contract = new ethers.Contract(nftaddress, NFT.abi, signer);
-    let transaction = await contract.createToken(
-      url
-      //  {gasLimit: 1000000}
-    );
+    let transaction = await contract.createToken(url);
     let tx = await transaction.wait();
 
     let event = tx.events[0];
@@ -80,7 +78,7 @@ const CreateItem: () => void = () => {
 
     contract = new ethers.Contract(nftmarketaddress, NFTMarket.abi, signer);
     let listingPrice = await contract.getListingPrice();
-    listingPrice = listingPrice.toString(0);
+    listingPrice = listingPrice.toString();
 
     transaction = await contract.createMarketItem(nftaddress, tokenId, price, {
       value: listingPrice
@@ -116,11 +114,12 @@ const CreateItem: () => void = () => {
         />
         <input type="file" name="Asset" className="my-4" onChange={onChange} />
         {fileUrl && (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             alt="Image to be uploaded ad NFT file"
             className="rounded mt-4"
             width="350"
-            src={fileUrl as any}
+            src={fileUrl}
           />
         )}
         <button
