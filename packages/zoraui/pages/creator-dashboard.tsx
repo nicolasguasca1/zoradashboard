@@ -31,7 +31,7 @@ const CreatorDahboard: NextPage = () => {
       signer
     );
     const tokenContract = new ethers.Contract(nftaddress, NFT.abi, signer);
-    const data = await marketContract.fetchMyNFTs();
+    const data = await marketContract.fetchItemsCreated();
 
     const items = await Promise.all(
       data.map(async (i: item) => {
@@ -54,10 +54,12 @@ const CreatorDahboard: NextPage = () => {
     setNfts(items as ethers.Contract[]);
     setLoadingState("loaded");
   }
+  if (loadingState === "loaded" && !nfts.length)
+    return <h1 className="py-10 px-20 text-3xl">No assets created</h1>;
   return (
     <div>
       <div className="p-4">
-        <h1>Items Created</h1>
+        <h2 className="text-2xl py-2">Items Created</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
           {nfts.map((nft: ethers.Contract, i) => (
             <div key={i} className="border shadow rounded-xl overflow-hidden">
