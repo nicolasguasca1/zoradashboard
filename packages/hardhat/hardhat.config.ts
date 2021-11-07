@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
       url: `https://polygon-mumbai.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
       accounts: [privateKey!]
     },
-    mainnet: {
+    matic: {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
       accounts: [privateKey!]
     }
