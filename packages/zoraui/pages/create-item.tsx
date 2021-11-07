@@ -13,7 +13,12 @@ import { item } from "./index";
 //   protocol: "https"
 // });
 
-const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
+// const client = ipfsHttpClient("https://ipfs.infura.io:5001/api/v0");
+const client = ipfsHttpClient({
+  host: "ipfs.infura.io",
+  port: 5001,
+  protocol: "https"
+});
 
 import { nftaddress, nftmarketaddress } from "../config";
 
@@ -69,6 +74,7 @@ const CreateItem: () => void = () => {
     let contract = new ethers.Contract(nftaddress, NFT.abi, signer);
     let transaction = await contract.createToken(url);
     let tx = await transaction.wait();
+    console.log(tx);
 
     let event = tx.events[0];
     let value = event.args[2];
