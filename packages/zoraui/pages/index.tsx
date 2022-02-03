@@ -119,6 +119,14 @@ const Home: NextPage = (props) => {
             </div>
           ))}
         </div>
+        <section className="flex">
+          <div className="py-4" style={{ maxWidth: "1600px" }}>
+            <button type="button"
+                  className="w-full bg-purple-500 text-white font-bold py-2 px-12 rounded"
+                  onClick={() => buyNft(nft)}>Review randomly</button>
+          </div>
+        </section>
+        
       </div>
     </div>
   );
